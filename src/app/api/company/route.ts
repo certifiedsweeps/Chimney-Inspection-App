@@ -8,7 +8,7 @@ export async function GET() {
   } catch (error) {
     const msg = error instanceof Error ? error.message : String(error);
     console.error(error);
-    return NextResponse.json({ error: "Failed to fetch company", detail: msg }, { status: 500 });
+    return NextResponse.json({ error: "Failed to fetch company" }, { status: 500 });
   }
 }
 

@@ -9,18 +9,16 @@ function createPrismaClient(): PrismaClient {
 
   // ── Production / Vercel: Neon Postgres (serverless HTTP) ─────────────────
   if (dbUrl.startsWith("postgres")) {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { neon } = require("@neondatabase/serverless");
+    // PrismaNeonHttp (Prisma 7) takes the connection string directly —
+    // do NOT wrap in neon() first.
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { PrismaNeonHttp } = require("@prisma/adapter-neon");
-    const sql = neon(dbUrl);
-    const adapter = new PrismaNeonHttp(sql);
+    const adapter = new PrismaNeonHttp(dbUrl);
     return new PrismaClient({ adapter });
   }
 
   // ── Local development only: SQLite via better-sqlite3 ────────────────────
   // These packages are devDependencies and are NOT installed on Vercel.
-  // This branch only runs when DATABASE_URL starts with "file:".
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { PrismaBetterSqlite3 } = require("@prisma/adapter-better-sqlite3");
   // eslint-disable-next-line @typescript-eslint/no-require-imports
