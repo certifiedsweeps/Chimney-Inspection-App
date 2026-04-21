@@ -1,0 +1,108 @@
+import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+
+export async function GET(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  try {
+    const inspection = await prisma.inspection.findUnique({
+      where: { id },
+      include: {
+        customer: true,
+        sections: {
+          orderBy: { sortOrder: "asc" },
+          include: { items: { orderBy: { sortOrder: "asc" } } },
+        },
+      },
+    });
+    if (!inspection) return NextResponse.json({ error: "Not found" }, { status: 404 });
+    return NextResponse.json(inspection);
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ error: "Failed to fetch inspection" }, { status: 500 });
+  }
+}
+
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  try {
+    const body = await req.json();
+    const { sections, ...topLevel } = body;
+
+    // Update top-level inspection fields
+    const updateData: Record<string, unknown> = {};
+    const allowed = [
+      "status", "inspectionDate", "inspectionLevel", "technicianName",
+      "technicianLicense", "propertyAddress", "propertyCity", "propertyState",
+      "propertyZip", "applianceMake", "applianceModel", "applianceSerial",
+      "fuelType", "applianceType", "flueLinerType", "flueShape", "flueWidth",
+      "flueHeight", "chimneyHeight", "fireplaceMake", "fireplaceModel",
+      "fireplaceSerial", "overallCondition", "summaryNotes", "recommendations",
+      "customerId",
+    ];
+    for (const key of allowed) {
+      if (key in topLevel) updateData[key] = topLevel[key];
+    }
+
+    // Update section items if provided
+    if (sections && Array.isArray(sections)) {
+      for (const section of sections) {
+        if (section.id) {
+          await prisma.inspectionSection.update({
+            where: { id: section.id },
+            data: { notes: section.notes ?? undefined },
+          });
+        }
+        if (section.items && Array.isArray(section.items)) {
+          for (const item of section.items) {
+            if (item.id) {
+              await prisma.inspectionItem.update({
+                where: { id: item.id },
+                data: {
+                  result: item.result ?? undefined,
+                  notes: item.notes ?? undefined,
+                },
+              });
+            }
+          }
+        }
+      }
+    }
+
+    const inspection = await prisma.inspection.update({
+      where: { id },
+      data: updateData,
+      include: {
+        customer: true,
+        sections: {
+          orderBy: { sortOrder: "asc" },
+          include: { items: { orderBy: { sortOrder: "asc" } } },
+        },
+      },
+    });
+
+    return NextResponse.json(inspection);
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ error: "Failed to update inspection" }, { status: 500 });
+  }
+}
+
+export async function DELETE(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params;
+  try {
+    await prisma.inspection.delete({ where: { id } });
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ error: "Failed to delete inspection" }, { status: 500 });
+  }
+}

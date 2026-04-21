@@ -1,0 +1,112 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Company {
+  id          String   @id @default(cuid())
+  name        String
+  address     String?
+  city        String?
+  state       String?
+  zip         String?
+  phone       String?
+  email       String?
+  website     String?
+  licenseNum  String?
+  csiaNum     String?
+  logoUrl     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Customer {
+  id          String       @id @default(cuid())
+  firstName   String
+  lastName    String
+  email       String?
+  phone       String?
+  address     String?
+  city        String?
+  state       String?
+  zip         String?
+  notes       String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  inspections Inspection[]
+}
+
+model Inspection {
+  id                String            @id @default(cuid())
+  inspectionNumber  String            @unique
+  status            String            @default("draft")
+  inspectionDate    DateTime          @default(now())
+  inspectionLevel   String
+  chimneyType       String
+  technicianName    String?
+  technicianLicense String?
+
+  propertyAddress   String?
+  propertyCity      String?
+  propertyState     String?
+  propertyZip       String?
+
+  applianceMake     String?
+  applianceModel    String?
+  applianceSerial   String?
+  fuelType          String?
+  applianceType     String?
+
+  flueLinerType     String?
+  flueShape         String?
+  flueWidth         String?
+  flueHeight        String?
+  chimneyHeight     String?
+
+  fireplaceMake     String?
+  fireplaceModel    String?
+  fireplaceSerial   String?
+
+  overallCondition  String?
+  summaryNotes      String?
+  recommendations   String?
+
+  customerId        String?
+  customer          Customer?         @relation(fields: [customerId], references: [id])
+  sections          InspectionSection[]
+
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+}
+
+model InspectionSection {
+  id           String          @id @default(cuid())
+  inspectionId String
+  inspection   Inspection      @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
+  sectionKey   String
+  sectionTitle String
+  sortOrder    Int             @default(0)
+  notes        String?
+  items        InspectionItem[]
+
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+}
+
+model InspectionItem {
+  id        String            @id @default(cuid())
+  sectionId String
+  section   InspectionSection @relation(fields: [sectionId], references: [id], onDelete: Cascade)
+  itemKey   String
+  label     String
+  result    String?
+  notes     String?
+  sortOrder Int               @default(0)
+
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+}
