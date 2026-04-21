@@ -7,10 +7,8 @@ const globalForPrisma = globalThis as unknown as {
 function createPrismaClient(): PrismaClient {
   const dbUrl = process.env.DATABASE_URL ?? "";
 
-  // ── Production: Neon Postgres (serverless HTTP) ──────────────────────────
+  // ── Production / Vercel: Neon Postgres (serverless HTTP) ─────────────────
   if (dbUrl.startsWith("postgres")) {
-    // Dynamic import kept inside the branch so the SQLite packages are never
-    // bundled in production and vice-versa.
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { neon } = require("@neondatabase/serverless");
     // eslint-disable-next-line @typescript-eslint/no-require-imports
@@ -20,9 +18,12 @@ function createPrismaClient(): PrismaClient {
     return new PrismaClient({ adapter });
   }
 
-  // ── Local development: SQLite via better-sqlite3 ─────────────────────────
+  // ── Local development only: SQLite via better-sqlite3 ────────────────────
+  // These packages are devDependencies and are NOT installed on Vercel.
+  // This branch only runs when DATABASE_URL starts with "file:".
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { PrismaBetterSqlite3 } = require("@prisma/adapter-better-sqlite3");
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
   const path = require("path") as typeof import("path");
   const filePath = dbUrl.startsWith("file:")
     ? path.resolve(process.cwd(), dbUrl.replace(/^file:/, ""))
