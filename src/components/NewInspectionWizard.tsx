@@ -146,7 +146,7 @@ export default function NewInspectionWizard() {
         {STEPS.map((s, i) => (
           <div
             key={s.id}
-            className={`flex-1 flex items-center gap-2 px-4 py-3 text-sm border-r border-gray-100 last:border-r-0 ${
+            className={`flex-1 flex items-center justify-center sm:justify-start gap-2 px-2 sm:px-4 py-3 text-sm border-r border-gray-100 last:border-r-0 ${
               s.id === step
                 ? "bg-amber-50 text-amber-800 font-medium"
                 : s.id < step
@@ -165,7 +165,7 @@ export default function NewInspectionWizard() {
             >
               {s.id < step ? <Check className="w-3 h-3" /> : i + 1}
             </span>
-            <span className="hidden sm:inline">{s.title}</span>
+            <span className="hidden sm:inline text-xs">{s.title}</span>
           </div>
         ))}
       </div>

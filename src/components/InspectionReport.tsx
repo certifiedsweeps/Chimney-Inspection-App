@@ -121,10 +121,10 @@ export default function InspectionReport({
       </div>
 
       {/* Report body */}
-      <div className="max-w-4xl mx-auto px-8 py-8 print:p-0 print:max-w-none" id="report">
+      <div className="max-w-4xl mx-auto px-4 md:px-8 py-6 md:py-8 print:p-0 print:max-w-none" id="report">
 
         {/* Company header */}
-        <div className="flex items-start justify-between mb-8 pb-6 border-b-2 border-amber-700">
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 mb-6 md:mb-8 pb-5 md:pb-6 border-b-2 border-amber-700">
           <div>
             <h1 className="text-2xl font-bold text-amber-800">
               {company?.name ?? "Chimney Inspection Services"}
@@ -173,7 +173,7 @@ export default function InspectionReport({
         )}
 
         {/* Two-column info grid */}
-        <div className="grid grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6 mb-6 md:mb-8">
           {/* Customer & Property */}
           <div>
             <h2 className="text-xs font-semibold uppercase tracking-widest text-gray-400 mb-3">
@@ -225,7 +225,7 @@ export default function InspectionReport({
         </div>
 
         {/* Inspection statistics */}
-        <div className="grid grid-cols-4 gap-3 mb-8">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6 md:mb-8">
           {[
             { label: "Items Inspected", value: allItems.filter((i) => i.result).length, cls: "text-gray-800" },
             { label: "Satisfactory", value: satisfactoryCount, cls: "text-green-700" },
@@ -273,33 +273,27 @@ export default function InspectionReport({
                 <div className="bg-gray-50 px-4 py-2 border-b border-gray-100">
                   <h3 className="font-semibold text-sm text-gray-800">{section.sectionTitle}</h3>
                 </div>
-                <table className="w-full text-sm">
-                  <tbody className="divide-y divide-gray-50">
-                    {section.items.map((item) => {
-                      if (!item.result) return null;
-                      const badge = RESULT_BADGE[item.result];
-                      return (
-                        <tr key={item.id} className={item.result === "deficient" ? "bg-red-50/30" : ""}>
-                          <td className="px-4 py-2.5 text-gray-700 leading-relaxed w-2/3">{item.label}</td>
-                          <td className="px-4 py-2.5 w-1/3">
-                            <div>
-                              {badge && (
-                                <span
-                                  className={`inline-block text-xs px-2 py-0.5 rounded border ${badge.cls}`}
-                                >
-                                  {badge.label}
-                                </span>
-                              )}
-                              {item.notes && (
-                                <p className="text-xs text-gray-600 mt-1 italic">{item.notes}</p>
-                              )}
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+                <div className="divide-y divide-gray-50">
+                  {section.items.map((item) => {
+                    if (!item.result) return null;
+                    const badge = RESULT_BADGE[item.result];
+                    return (
+                      <div key={item.id} className={`px-4 py-3 ${item.result === "deficient" ? "bg-red-50/30" : ""}`}>
+                        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-1.5">
+                          <p className="text-sm text-gray-700 leading-relaxed flex-1">{item.label}</p>
+                          {badge && (
+                            <span className={`self-start shrink-0 text-xs px-2 py-0.5 rounded border ${badge.cls}`}>
+                              {badge.label}
+                            </span>
+                          )}
+                        </div>
+                        {item.notes && (
+                          <p className="text-xs text-gray-600 mt-1 italic">{item.notes}</p>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
                 {section.notes && (
                   <div className="px-4 py-2 bg-gray-50 border-t border-gray-100 text-xs text-gray-600 italic">
                     {section.notes}

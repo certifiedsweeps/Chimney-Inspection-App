@@ -20,7 +20,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <html lang="en" className={`${geistSans.variable} h-full antialiased`}>
         <body className="h-full flex bg-[#f8f7f4]">
           <Sidebar />
-          <main className="flex-1 overflow-y-auto min-h-screen">{children}</main>
+          {/* pt-14 on mobile to clear the fixed top bar; no padding on md+ */}
+          <main className="flex-1 overflow-y-auto min-h-screen pt-14 md:pt-0">
+            {children}
+          </main>
         </body>
       </html>
     </ClerkProvider>
