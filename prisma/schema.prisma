@@ -7,8 +7,10 @@ datasource db {
   provider = "postgresql"
 }
 
+// One row per Clerk organization — stores the company's profile info
 model Company {
   id          String   @id @default(cuid())
+  companyId   String   @unique  // Clerk orgId
   name        String
   address     String?
   city        String?
@@ -20,12 +22,17 @@ model Company {
   licenseNum  String?
   csiaNum     String?
   logoUrl     String?
+  // Stripe fields (ready for Phase 2 billing)
+  stripeCustomerId     String?
+  stripePlanId         String?
+  subscriptionStatus   String?  // active | trialing | past_due | canceled
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
 
 model Customer {
   id          String       @id @default(cuid())
+  companyId   String       // Clerk orgId — isolates data per company
   firstName   String
   lastName    String
   email       String?
@@ -38,10 +45,13 @@ model Customer {
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
   inspections Inspection[]
+
+  @@index([companyId])
 }
 
 model Inspection {
   id                String            @id @default(cuid())
+  companyId         String            // Clerk orgId
   inspectionNumber  String            @unique
   status            String            @default("draft")
   inspectionDate    DateTime          @default(now())
@@ -81,6 +91,8 @@ model Inspection {
 
   createdAt         DateTime          @default(now())
   updatedAt         DateTime          @updatedAt
+
+  @@index([companyId])
 }
 
 model InspectionSection {

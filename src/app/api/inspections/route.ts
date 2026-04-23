@@ -2,10 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { generateInspectionNumber } from "@/lib/utils";
 import { getTemplate } from "@/lib/inspectionTemplates";
+import { requireCompanyId } from "@/lib/auth";
 
 export async function GET() {
   try {
+    const companyId = await requireCompanyId();
     const inspections = await prisma.inspection.findMany({
+      where: { companyId },
       include: { customer: true },
       orderBy: { inspectionDate: "desc" },
     });
@@ -18,6 +21,7 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
+    const companyId = await requireCompanyId();
     const body = await req.json();
     const {
       customerId,
@@ -30,6 +34,15 @@ export async function POST(req: NextRequest) {
       propertyCity,
       propertyState,
       propertyZip,
+      applianceMake,
+      applianceModel,
+      applianceSerial,
+      fuelType,
+      applianceType,
+      fireplaceMake,
+      fireplaceModel,
+      fireplaceSerial,
+      flueLinerType,
     } = body;
 
     const inspectionNumber = generateInspectionNumber();
@@ -37,6 +50,7 @@ export async function POST(req: NextRequest) {
 
     const inspection = await prisma.inspection.create({
       data: {
+        companyId,
         inspectionNumber,
         inspectionDate: inspectionDate ? new Date(inspectionDate) : new Date(),
         inspectionLevel,
@@ -47,6 +61,15 @@ export async function POST(req: NextRequest) {
         propertyCity,
         propertyState,
         propertyZip,
+        applianceMake,
+        applianceModel,
+        applianceSerial,
+        fuelType,
+        applianceType,
+        fireplaceMake,
+        fireplaceModel,
+        fireplaceSerial,
+        flueLinerType,
         customerId: customerId || null,
         sections: {
           create: template.map((section) => ({

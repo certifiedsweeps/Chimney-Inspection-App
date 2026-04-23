@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { requireCompanyId } from "@/lib/auth";
 import Link from "next/link";
 import { Users, ClipboardList } from "lucide-react";
 import { formatDate } from "@/lib/utils";
@@ -6,7 +7,9 @@ import { formatDate } from "@/lib/utils";
 export const dynamic = "force-dynamic";
 
 export default async function CustomersPage() {
+  const companyId = await requireCompanyId();
   const customers = await prisma.customer.findMany({
+    where: { companyId },
     orderBy: { lastName: "asc" },
     include: {
       _count: { select: { inspections: true } },
@@ -18,8 +21,7 @@ export default async function CustomersPage() {
     <div className="p-8 max-w-6xl mx-auto">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Customers</h1>
-        <Link
-          href="/inspections/new"
+        <Link href="/inspections/new"
           className="inline-flex items-center gap-2 bg-amber-700 hover:bg-amber-800 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors"
         >
           New Inspection
@@ -45,20 +47,17 @@ export default async function CustomersPage() {
             <div className="divide-y divide-gray-50">
               {customers.map((c) => (
                 <div key={c.id} className="grid grid-cols-12 px-6 py-4 items-center hover:bg-amber-50/30 transition-colors">
-                  <div className="col-span-3 font-medium text-sm text-gray-900">
-                    {c.firstName} {c.lastName}
-                  </div>
+                  <div className="col-span-3 font-medium text-sm text-gray-900">{c.firstName} {c.lastName}</div>
                   <div className="col-span-3 text-sm text-gray-500">
                     <div>{c.phone}</div>
                     <div className="text-xs">{c.email}</div>
                   </div>
-                  <div className="col-span-3 text-sm text-gray-500 text-xs">
+                  <div className="col-span-3 text-xs text-gray-500">
                     {[c.address, c.city, c.state].filter(Boolean).join(", ")}
                   </div>
                   <div className="col-span-2">
                     <span className="inline-flex items-center gap-1 text-xs text-gray-600">
-                      <ClipboardList className="w-3.5 h-3.5" />
-                      {c._count.inspections}
+                      <ClipboardList className="w-3.5 h-3.5" />{c._count.inspections}
                     </span>
                   </div>
                   <div className="col-span-1 text-xs text-gray-400">

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+import { requireCompanyId } from "@/lib/auth";
 
 export async function GET(
   _req: NextRequest,
@@ -7,8 +8,9 @@ export async function GET(
 ) {
   const { id } = await params;
   try {
-    const inspection = await prisma.inspection.findUnique({
-      where: { id },
+    const companyId = await requireCompanyId();
+    const inspection = await prisma.inspection.findFirst({
+      where: { id, companyId },
       include: {
         customer: true,
         sections: {
@@ -31,10 +33,14 @@ export async function PATCH(
 ) {
   const { id } = await params;
   try {
+    const companyId = await requireCompanyId();
     const body = await req.json();
     const { sections, ...topLevel } = body;
 
-    // Update top-level inspection fields
+    // Verify ownership before updating
+    const existing = await prisma.inspection.findFirst({ where: { id, companyId } });
+    if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
     const updateData: Record<string, unknown> = {};
     const allowed = [
       "status", "inspectionDate", "inspectionLevel", "technicianName",
@@ -49,7 +55,6 @@ export async function PATCH(
       if (key in topLevel) updateData[key] = topLevel[key];
     }
 
-    // Update section items if provided
     if (sections && Array.isArray(sections)) {
       for (const section of sections) {
         if (section.id) {
@@ -99,6 +104,9 @@ export async function DELETE(
 ) {
   const { id } = await params;
   try {
+    const companyId = await requireCompanyId();
+    const existing = await prisma.inspection.findFirst({ where: { id, companyId } });
+    if (!existing) return NextResponse.json({ error: "Not found" }, { status: 404 });
     await prisma.inspection.delete({ where: { id } });
     return NextResponse.json({ success: true });
   } catch (error) {
