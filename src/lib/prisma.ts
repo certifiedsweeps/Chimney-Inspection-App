@@ -7,13 +7,16 @@ const globalForPrisma = globalThis as unknown as {
 function createPrismaClient(): PrismaClient {
   const dbUrl = process.env.DATABASE_URL ?? "";
 
-  // ── Production / Vercel: Neon Postgres (serverless HTTP) ─────────────────
+  // ── Production / Vercel: Neon Postgres (WebSocket pool — supports transactions) ──
   if (dbUrl.startsWith("postgres")) {
-    // PrismaNeonHttp (Prisma 7) takes the connection string directly —
-    // do NOT wrap in neon() first.
+    // PrismaNeonHttp does NOT support transactions (Neon HTTP limitation).
+    // PrismaNeon + Pool uses WebSockets and supports full transaction support.
     // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { PrismaNeonHttp } = require("@prisma/adapter-neon");
-    const adapter = new PrismaNeonHttp(dbUrl);
+    const { Pool } = require("@neondatabase/serverless");
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { PrismaNeon } = require("@prisma/adapter-neon");
+    const pool = new Pool({ connectionString: dbUrl });
+    const adapter = new PrismaNeon(pool);
     return new PrismaClient({ adapter });
   }
 
