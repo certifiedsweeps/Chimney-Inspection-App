@@ -265,8 +265,8 @@ export default function InspectionReport({
         <h2 className="text-base font-bold text-gray-800 mb-4">Detailed Inspection Findings</h2>
         <div className="space-y-6 mb-8">
           {inspection.sections.map((section) => {
-            const answeredItems = section.items.filter((i) => i.result);
-            if (answeredItems.length === 0) return null;
+            const reportItems = section.items.filter((i) => i.result && i.result !== "not_applicable");
+            if (reportItems.length === 0) return null;
 
             return (
               <div key={section.id} className="border border-gray-100 rounded-lg overflow-hidden">
@@ -275,7 +275,7 @@ export default function InspectionReport({
                 </div>
                 <div className="divide-y divide-gray-50">
                   {section.items.map((item) => {
-                    if (!item.result) return null;
+                    if (!item.result || item.result === "not_applicable") return null;
                     const badge = RESULT_BADGE[item.result];
                     return (
                       <div key={item.id} className={`px-4 py-3 ${item.result === "deficient" ? "bg-red-50/30" : ""}`}>

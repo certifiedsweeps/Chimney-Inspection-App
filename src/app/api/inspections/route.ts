@@ -99,6 +99,7 @@ export async function POST(req: NextRequest) {
               itemKey: item.key,
               label: item.label,
               sortOrder: item.sortOrder,
+              result: "not_applicable",
             },
           })
         )

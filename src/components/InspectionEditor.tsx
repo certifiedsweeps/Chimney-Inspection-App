@@ -121,9 +121,10 @@ export default function InspectionEditor({ inspection: initial }: { inspection: 
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
 
   const allItems = inspection.sections.flatMap((s) => s.items);
-  const answered = allItems.filter((i) => i.result).length;
+  // "Reviewed" = actively assessed (pass, deficient, not_accessible). N/A is the default and doesn't count toward progress.
+  const reviewed = allItems.filter((i) => i.result && i.result !== "not_applicable").length;
   const deficient = allItems.filter((i) => i.result === "deficient").length;
-  const progress = allItems.length > 0 ? Math.round((answered / allItems.length) * 100) : 0;
+  const progress = allItems.length > 0 ? Math.round((reviewed / allItems.length) * 100) : 0;
 
   const setItemResult = useCallback((sectionId: string, itemId: string, result: ItemResult) => {
     setInspection((prev) => ({
@@ -227,7 +228,7 @@ export default function InspectionEditor({ inspection: initial }: { inspection: 
             <div className="flex-1">
               <div className="flex justify-between text-xs text-gray-500 mb-1">
                 <span>
-                  {answered}/{allItems.length} items
+                  {reviewed}/{allItems.length} reviewed
                   {deficient > 0 && (
                     <span className="text-red-600 font-medium ml-2">{deficient} deficient</span>
                   )}
@@ -268,7 +269,7 @@ export default function InspectionEditor({ inspection: initial }: { inspection: 
       <div className="space-y-3">
         {inspection.sections.map((section) => {
           const sectionDeficient = section.items.filter((i) => i.result === "deficient").length;
-          const sectionAnswered = section.items.filter((i) => i.result).length;
+          const sectionAnswered = section.items.filter((i) => i.result && i.result !== "not_applicable").length;
           const isCollapsed = collapsedSections[section.id];
 
           return (
