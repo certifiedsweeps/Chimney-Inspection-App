@@ -48,7 +48,7 @@ export async function POST(req: NextRequest) {
     const inspectionNumber = generateInspectionNumber();
     const template = getTemplate(chimneyType);
 
-    // Step 1: create the inspection row (no nested writes — Neon HTTP doesn't support transactions)
+    // Step 1: create the inspection row
     const inspection = await prisma.inspection.create({
       data: {
         companyId,
@@ -75,29 +75,37 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    // Step 2: create sections and their items sequentially
-    for (const section of template) {
-      const sec = await prisma.inspectionSection.create({
-        data: {
-          inspectionId: inspection.id,
-          sectionKey: section.key,
-          sectionTitle: section.title,
-          sortOrder: section.sortOrder,
-        },
-      });
-      if (section.items.length > 0) {
-        await prisma.inspectionItem.createMany({
-          data: section.items.map((item) => ({
-            sectionId: sec.id,
-            itemKey: item.key,
-            label: item.label,
-            sortOrder: item.sortOrder,
-          })),
-        });
-      }
-    }
+    // Step 2: create all sections in parallel (each is an independent HTTP request — no transaction needed)
+    const sections = await Promise.all(
+      template.map((section) =>
+        prisma.inspectionSection.create({
+          data: {
+            inspectionId: inspection.id,
+            sectionKey: section.key,
+            sectionTitle: section.title,
+            sortOrder: section.sortOrder,
+          },
+        })
+      )
+    );
 
-    // Step 3: return the full inspection with all relations
+    // Step 3: create all items in parallel across all sections
+    await Promise.all(
+      sections.flatMap((sec, idx) =>
+        template[idx].items.map((item) =>
+          prisma.inspectionItem.create({
+            data: {
+              sectionId: sec.id,
+              itemKey: item.key,
+              label: item.label,
+              sortOrder: item.sortOrder,
+            },
+          })
+        )
+      )
+    );
+
+    // Step 4: return the full inspection with all relations
     const full = await prisma.inspection.findUnique({
       where: { id: inspection.id },
       include: { sections: { include: { items: true } }, customer: true },
