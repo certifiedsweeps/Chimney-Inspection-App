@@ -48,6 +48,7 @@ export async function POST(req: NextRequest) {
     const inspectionNumber = generateInspectionNumber();
     const template = getTemplate(chimneyType);
 
+    // Step 1: create the inspection row (no nested writes — Neon HTTP doesn't support transactions)
     const inspection = await prisma.inspection.create({
       data: {
         companyId,
@@ -71,28 +72,38 @@ export async function POST(req: NextRequest) {
         fireplaceSerial,
         flueLinerType,
         customerId: customerId || null,
-        sections: {
-          create: template.map((section) => ({
-            sectionKey: section.key,
-            sectionTitle: section.title,
-            sortOrder: section.sortOrder,
-            items: {
-              create: section.items.map((item) => ({
-                itemKey: item.key,
-                label: item.label,
-                sortOrder: item.sortOrder,
-              })),
-            },
-          })),
-        },
-      },
-      include: {
-        sections: { include: { items: true } },
-        customer: true,
       },
     });
 
-    return NextResponse.json(inspection, { status: 201 });
+    // Step 2: create sections and their items sequentially
+    for (const section of template) {
+      const sec = await prisma.inspectionSection.create({
+        data: {
+          inspectionId: inspection.id,
+          sectionKey: section.key,
+          sectionTitle: section.title,
+          sortOrder: section.sortOrder,
+        },
+      });
+      if (section.items.length > 0) {
+        await prisma.inspectionItem.createMany({
+          data: section.items.map((item) => ({
+            sectionId: sec.id,
+            itemKey: item.key,
+            label: item.label,
+            sortOrder: item.sortOrder,
+          })),
+        });
+      }
+    }
+
+    // Step 3: return the full inspection with all relations
+    const full = await prisma.inspection.findUnique({
+      where: { id: inspection.id },
+      include: { sections: { include: { items: true } }, customer: true },
+    });
+
+    return NextResponse.json(full, { status: 201 });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
     console.error("POST /api/inspections error:", message);
