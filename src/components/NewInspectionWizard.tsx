@@ -94,11 +94,14 @@ export default function NewInspectionWizard() {
           body: JSON.stringify({
             firstName: form.customerFirstName,
             lastName: form.customerLastName,
-            phone: form.customerPhone,
-            email: form.customerEmail,
+            phone: form.customerPhone || null,
+            email: form.customerEmail || null,
           }),
         });
         const cust = await custRes.json();
+        if (!custRes.ok) {
+          throw new Error(cust.error ?? "Failed to create customer");
+        }
         customerId = cust.id;
       }
 
@@ -110,30 +113,33 @@ export default function NewInspectionWizard() {
           inspectionDate: form.inspectionDate,
           inspectionLevel: form.inspectionLevel,
           chimneyType: form.chimneyType,
-          technicianName: form.technicianName,
-          technicianLicense: form.technicianLicense,
-          propertyAddress: form.propertyAddress,
-          propertyCity: form.propertyCity,
-          propertyState: form.propertyState,
-          propertyZip: form.propertyZip,
-          applianceMake: form.applianceMake,
-          applianceModel: form.applianceModel,
-          applianceSerial: form.applianceSerial,
-          fuelType: form.fuelType,
-          applianceType: form.applianceType,
-          fireplaceMake: form.fireplaceMake,
-          fireplaceModel: form.fireplaceModel,
-          fireplaceSerial: form.fireplaceSerial,
-          flueLinerType: form.flueLinerType,
+          technicianName: form.technicianName || null,
+          technicianLicense: form.technicianLicense || null,
+          propertyAddress: form.propertyAddress || null,
+          propertyCity: form.propertyCity || null,
+          propertyState: form.propertyState || null,
+          propertyZip: form.propertyZip || null,
+          applianceMake: form.applianceMake || null,
+          applianceModel: form.applianceModel || null,
+          applianceSerial: form.applianceSerial || null,
+          fuelType: form.fuelType || null,
+          applianceType: form.applianceType || null,
+          fireplaceMake: form.fireplaceMake || null,
+          fireplaceModel: form.fireplaceModel || null,
+          fireplaceSerial: form.fireplaceSerial || null,
+          flueLinerType: form.flueLinerType || null,
         }),
       });
 
-      if (!res.ok) throw new Error("Failed to create inspection");
-      const inspection = await res.json();
-      router.push(`/inspections/${inspection.id}`);
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error ?? "Failed to create inspection");
+      }
+      router.push(`/inspections/${data.id}`);
     } catch (e) {
-      setError("Something went wrong. Please try again.");
-      console.error(e);
+      const message = e instanceof Error ? e.message : "Something went wrong.";
+      setError(message);
+      console.error("Create inspection error:", e);
     } finally {
       setSaving(false);
     }
