@@ -59,38 +59,45 @@ export async function PATCH(
       if (key in topLevel) updateData[key] = topLevel[key];
     }
 
+    // Step 1: save top-level inspection fields first (companyCamUrl, notes, etc.)
+    await prisma.inspection.update({ where: { id }, data: updateData });
+
+    // Step 2: save checklist items in small parallel batches to avoid
+    // overwhelming Neon's HTTP connection limit with 67+ concurrent requests.
     if (sections && Array.isArray(sections)) {
-      // Run all section and item updates in parallel — sequential updates
-      // were too slow (67+ round trips) and risked Vercel function timeouts.
-      const sectionUpdates = sections
-        .filter((s) => s.id)
-        .map((s) =>
-          prisma.inspectionSection.update({
-            where: { id: s.id },
-            data: { notes: s.notes ?? null },
-          })
-        );
+      const allUpdates: Promise<unknown>[] = [];
 
-      const itemUpdates = sections.flatMap((s) =>
-        (s.items ?? [])
-          .filter((i: { id?: string }) => i.id)
-          .map((i: { id: string; result?: string; notes?: string }) =>
-            prisma.inspectionItem.update({
-              where: { id: i.id },
-              data: {
-                result: i.result ?? null,
-                notes: i.notes ?? null,
-              },
+      for (const s of sections) {
+        if (s.id) {
+          allUpdates.push(
+            prisma.inspectionSection.update({
+              where: { id: s.id },
+              data: { notes: s.notes ?? null },
             })
-          )
-      );
+          );
+        }
+        for (const i of (s.items ?? [])) {
+          if (i.id) {
+            allUpdates.push(
+              prisma.inspectionItem.update({
+                where: { id: i.id },
+                data: { result: i.result ?? null, notes: i.notes ?? null },
+              })
+            );
+          }
+        }
+      }
 
-      await Promise.all([...sectionUpdates, ...itemUpdates]);
+      // Run in batches of 10 to stay within Neon HTTP limits
+      const BATCH = 10;
+      for (let i = 0; i < allUpdates.length; i += BATCH) {
+        await Promise.all(allUpdates.slice(i, i + BATCH));
+      }
     }
 
-    const inspection = await prisma.inspection.update({
+    // Step 3: return the fully updated inspection
+    const inspection = await prisma.inspection.findFirst({
       where: { id },
-      data: updateData,
       include: {
         customer: true,
         sections: {
