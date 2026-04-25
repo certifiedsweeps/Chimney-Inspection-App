@@ -50,6 +50,10 @@ export async function PATCH(
       "flueHeight", "chimneyHeight", "fireplaceMake", "fireplaceModel",
       "fireplaceSerial", "overallCondition", "summaryNotes", "recommendations",
       "customerId",
+      // Sweep-only field notes
+      "internalNotes", "roofAccess", "fireplaceOpeningWidth", "fireplaceOpeningHeight",
+      // Photo documentation
+      "companyCamUrl",
     ];
     for (const key of allowed) {
       if (key in topLevel) updateData[key] = topLevel[key];

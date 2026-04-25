@@ -62,10 +62,18 @@ type Inspection = {
   fireplaceModel: string | null;
   fireplaceSerial: string | null;
   flueLinerType: string | null;
+  flueWidth: string | null;
+  flueHeight: string | null;
   chimneyHeight: string | null;
   overallCondition: string | null;
   summaryNotes: string | null;
   recommendations: string | null;
+  // Sweep-only
+  internalNotes: string | null;
+  roofAccess: string | null;
+  fireplaceOpeningWidth: string | null;
+  fireplaceOpeningHeight: string | null;
+  companyCamUrl: string | null;
   customer: { firstName: string; lastName: string; phone: string | null; email: string | null } | null;
   sections: Section[];
 };
@@ -172,6 +180,12 @@ export default function InspectionEditor({ inspection: initial }: { inspection: 
           summaryNotes: inspection.summaryNotes,
           recommendations: inspection.recommendations,
           chimneyHeight: inspection.chimneyHeight,
+          // Sweep-only fields
+          internalNotes: inspection.internalNotes,
+          roofAccess: inspection.roofAccess,
+          fireplaceOpeningWidth: inspection.fireplaceOpeningWidth,
+          fireplaceOpeningHeight: inspection.fireplaceOpeningHeight,
+          companyCamUrl: inspection.companyCamUrl,
           sections: inspection.sections,
         }),
       });
@@ -359,6 +373,110 @@ export default function InspectionEditor({ inspection: initial }: { inspection: 
             </div>
           );
         })}
+
+        {/* Sweep-only field notes */}
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
+          <div className="flex items-center justify-between px-4 py-3.5 bg-gray-50 border-b border-gray-100">
+            <div>
+              <h2 className="font-semibold text-gray-800 text-sm">Field Notes</h2>
+              <p className="text-xs text-gray-400 mt-0.5">🔒 Sweep use only — not included in customer report</p>
+            </div>
+          </div>
+          <div className="p-4 space-y-4">
+            {/* CompanyCam / photo gallery */}
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Photo Gallery URL (CompanyCam, Google Photos, etc.)</label>
+              <input
+                type="url"
+                value={inspection.companyCamUrl ?? ""}
+                onChange={(e) => setTopLevel("companyCamUrl", e.target.value)}
+                placeholder="https://app.companycam.com/projects/..."
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+              />
+            </div>
+
+            {/* Measurements */}
+            <div>
+              <p className="text-xs font-medium text-gray-600 mb-2">Measurements</p>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">Flue Width</label>
+                  <input
+                    type="text"
+                    value={inspection.flueWidth ?? ""}
+                    onChange={(e) => setTopLevel("flueWidth", e.target.value)}
+                    placeholder={`e.g. 8"`}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">Flue Height</label>
+                  <input
+                    type="text"
+                    value={inspection.flueHeight ?? ""}
+                    onChange={(e) => setTopLevel("flueHeight", e.target.value)}
+                    placeholder={`e.g. 12"`}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">Fireplace Opening Width</label>
+                  <input
+                    type="text"
+                    value={inspection.fireplaceOpeningWidth ?? ""}
+                    onChange={(e) => setTopLevel("fireplaceOpeningWidth", e.target.value)}
+                    placeholder={`e.g. 36"`}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs text-gray-500 mb-1">Fireplace Opening Height</label>
+                  <input
+                    type="text"
+                    value={inspection.fireplaceOpeningHeight ?? ""}
+                    onChange={(e) => setTopLevel("fireplaceOpeningHeight", e.target.value)}
+                    placeholder={`e.g. 28"`}
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  />
+                </div>
+                <div className="col-span-2">
+                  <label className="block text-xs text-gray-500 mb-1">Chimney Height</label>
+                  <input
+                    type="text"
+                    value={inspection.chimneyHeight ?? ""}
+                    onChange={(e) => setTopLevel("chimneyHeight", e.target.value)}
+                    placeholder="e.g. 22 ft"
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Roof access */}
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Roof Access</label>
+              <input
+                type="text"
+                value={inspection.roofAccess ?? ""}
+                onChange={(e) => setTopLevel("roofAccess", e.target.value)}
+                placeholder="e.g. Steep pitch, need 40ft ladder, accessible from garage roof..."
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+              />
+            </div>
+
+            {/* Internal notes */}
+            <div>
+              <label className="block text-xs font-medium text-gray-600 mb-1">Internal Notes</label>
+              <textarea
+                value={inspection.internalNotes ?? ""}
+                onChange={(e) => setTopLevel("internalNotes", e.target.value)}
+                placeholder="Notes for estimates, future repairs, or follow-up work..."
+                rows={4}
+                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-amber-500 resize-none"
+              />
+            </div>
+          </div>
+        </div>
 
         {/* Overall condition & summary */}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4 md:p-5 space-y-4">

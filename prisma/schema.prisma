@@ -85,6 +85,15 @@ model Inspection {
   summaryNotes      String?
   recommendations   String?
 
+  // Sweep-only field notes (never shown on customer report)
+  internalNotes           String?
+  roofAccess              String?
+  fireplaceOpeningWidth   String?
+  fireplaceOpeningHeight  String?
+
+  // Photo documentation
+  companyCamUrl     String?
+
   customerId        String?
   customer          Customer?         @relation(fields: [customerId], references: [id])
   sections          InspectionSection[]

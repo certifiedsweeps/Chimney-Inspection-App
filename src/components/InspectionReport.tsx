@@ -56,6 +56,7 @@ type Inspection = {
   overallCondition: string | null;
   summaryNotes: string | null;
   recommendations: string | null;
+  companyCamUrl: string | null;
   customer: { firstName: string; lastName: string; phone: string | null; email: string | null } | null;
   sections: Section[];
 };
@@ -321,6 +322,24 @@ export default function InspectionReport({
             <p className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap border border-amber-100 rounded-lg p-4 bg-amber-50">
               {inspection.recommendations}
             </p>
+          </div>
+        )}
+
+        {/* Photo documentation link */}
+        {inspection.companyCamUrl && (
+          <div className="mb-8">
+            <h2 className="text-base font-bold text-gray-800 mb-2">Photo Documentation</h2>
+            <div className="border border-gray-100 rounded-lg p-4 bg-gray-50">
+              <a
+                href={inspection.companyCamUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-amber-700 hover:underline break-all print:text-gray-700"
+              >
+                {inspection.companyCamUrl}
+              </a>
+              <p className="text-xs text-gray-400 mt-1 print:hidden">Opens in a new tab</p>
+            </div>
           </div>
         )}
 
