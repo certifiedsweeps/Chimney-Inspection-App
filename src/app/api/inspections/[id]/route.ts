@@ -60,27 +60,32 @@ export async function PATCH(
     }
 
     if (sections && Array.isArray(sections)) {
-      for (const section of sections) {
-        if (section.id) {
-          await prisma.inspectionSection.update({
-            where: { id: section.id },
-            data: { notes: section.notes ?? undefined },
-          });
-        }
-        if (section.items && Array.isArray(section.items)) {
-          for (const item of section.items) {
-            if (item.id) {
-              await prisma.inspectionItem.update({
-                where: { id: item.id },
-                data: {
-                  result: item.result ?? undefined,
-                  notes: item.notes ?? undefined,
-                },
-              });
-            }
-          }
-        }
-      }
+      // Run all section and item updates in parallel — sequential updates
+      // were too slow (67+ round trips) and risked Vercel function timeouts.
+      const sectionUpdates = sections
+        .filter((s) => s.id)
+        .map((s) =>
+          prisma.inspectionSection.update({
+            where: { id: s.id },
+            data: { notes: s.notes ?? null },
+          })
+        );
+
+      const itemUpdates = sections.flatMap((s) =>
+        (s.items ?? [])
+          .filter((i: { id?: string }) => i.id)
+          .map((i: { id: string; result?: string; notes?: string }) =>
+            prisma.inspectionItem.update({
+              where: { id: i.id },
+              data: {
+                result: i.result ?? null,
+                notes: i.notes ?? null,
+              },
+            })
+          )
+      );
+
+      await Promise.all([...sectionUpdates, ...itemUpdates]);
     }
 
     const inspection = await prisma.inspection.update({

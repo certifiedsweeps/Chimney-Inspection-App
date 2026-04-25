@@ -126,6 +126,7 @@ export default function InspectionEditor({ inspection: initial }: { inspection: 
   const [inspection, setInspection] = useState<Inspection>(initial);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [saveError, setSaveError] = useState("");
   const [collapsedSections, setCollapsedSections] = useState<Record<string, boolean>>({});
 
   const allItems = inspection.sections.flatMap((s) => s.items);
@@ -170,8 +171,9 @@ export default function InspectionEditor({ inspection: initial }: { inspection: 
 
   async function save(markComplete = false) {
     setSaving(true);
+    setSaveError("");
     try {
-      await fetch(`/api/inspections/${inspection.id}`, {
+      const res = await fetch(`/api/inspections/${inspection.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -189,9 +191,15 @@ export default function InspectionEditor({ inspection: initial }: { inspection: 
           sections: inspection.sections,
         }),
       });
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error ?? "Save failed");
+      }
       setSaved(true);
       setTimeout(() => setSaved(false), 2500);
       if (markComplete) router.refresh();
+    } catch (e) {
+      setSaveError(e instanceof Error ? e.message : "Save failed. Please try again.");
     } finally {
       setSaving(false);
     }
@@ -257,6 +265,13 @@ export default function InspectionEditor({ inspection: initial }: { inspection: 
               </div>
             </div>
           </div>
+
+          {/* Save error */}
+          {saveError && (
+            <p className="text-xs text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+              ⚠ {saveError}
+            </p>
+          )}
 
           {/* Action buttons */}
           <div className="flex gap-2 flex-wrap">
