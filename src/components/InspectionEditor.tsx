@@ -389,6 +389,21 @@ export default function InspectionEditor({ inspection: initial }: { inspection: 
           );
         })}
 
+        {/* Photo gallery — shown on customer report */}
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-4">
+          <label className="block text-xs font-medium text-gray-600 mb-1">
+            Photo Gallery Link
+            <span className="ml-2 text-xs font-normal text-green-600">✓ Appears on customer report</span>
+          </label>
+          <input
+            type="url"
+            value={inspection.companyCamUrl ?? ""}
+            onChange={(e) => setTopLevel("companyCamUrl", e.target.value)}
+            placeholder="CompanyCam, Google Photos, Dropbox… paste any shareable link"
+            className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
+          />
+        </div>
+
         {/* Sweep-only field notes */}
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm overflow-hidden">
           <div className="flex items-center justify-between px-4 py-3.5 bg-gray-50 border-b border-gray-100">
@@ -398,17 +413,6 @@ export default function InspectionEditor({ inspection: initial }: { inspection: 
             </div>
           </div>
           <div className="p-4 space-y-4">
-            {/* CompanyCam / photo gallery */}
-            <div>
-              <label className="block text-xs font-medium text-gray-600 mb-1">Photo Gallery URL (CompanyCam, Google Photos, etc.)</label>
-              <input
-                type="url"
-                value={inspection.companyCamUrl ?? ""}
-                onChange={(e) => setTopLevel("companyCamUrl", e.target.value)}
-                placeholder="https://app.companycam.com/projects/..."
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
-              />
-            </div>
 
             {/* Measurements */}
             <div>
