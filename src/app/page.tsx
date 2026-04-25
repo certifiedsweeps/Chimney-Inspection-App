@@ -3,6 +3,7 @@ import { requireCompanyId } from "@/lib/auth";
 import Link from "next/link";
 import { ClipboardList, Users, CheckCircle2, AlertCircle, PlusCircle, ArrowRight } from "lucide-react";
 import { formatDate, inspectionLevelLabel, chimneyTypeLabel, statusBadgeClass, overallConditionLabel } from "@/lib/utils";
+import WhatsNewBanner from "@/components/WhatsNewBanner";
 
 export const dynamic = "force-dynamic";
 
@@ -40,6 +41,8 @@ export default async function DashboardPage() {
           <span className="sm:hidden">New</span>
         </Link>
       </div>
+
+      <WhatsNewBanner />
 
       {/* Stats grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
