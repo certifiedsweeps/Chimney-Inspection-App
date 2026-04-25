@@ -15,6 +15,7 @@ import {
   CreditCard,
   Menu,
   X,
+  BookOpen,
 } from "lucide-react";
 
 const nav = [
@@ -22,6 +23,7 @@ const nav = [
   { href: "/inspections", label: "Inspections", icon: ClipboardList },
   { href: "/inspections/new", label: "New Inspection", icon: PlusCircle },
   { href: "/customers", label: "Customers", icon: Users },
+  { href: "/guide", label: "Getting Started", icon: BookOpen },
   { href: "/billing", label: "Billing", icon: CreditCard },
   { href: "/settings", label: "Settings", icon: Settings },
 ];

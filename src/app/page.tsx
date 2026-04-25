@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ClipboardList, Users, CheckCircle2, AlertCircle, PlusCircle, ArrowRight } from "lucide-react";
 import { formatDate, inspectionLevelLabel, chimneyTypeLabel, statusBadgeClass, overallConditionLabel } from "@/lib/utils";
 import WhatsNewBanner from "@/components/WhatsNewBanner";
+import OnboardingModal from "@/components/OnboardingModal";
 
 export const dynamic = "force-dynamic";
 
@@ -42,6 +43,7 @@ export default async function DashboardPage() {
         </Link>
       </div>
 
+      <OnboardingModal />
       <WhatsNewBanner />
 
       {/* Stats grid */}
