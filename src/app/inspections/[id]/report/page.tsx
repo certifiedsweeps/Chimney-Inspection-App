@@ -27,6 +27,8 @@ export default async function ReportPage({
 
   if (!inspection) notFound();
 
+  console.log("report companyCamUrl:", inspection.companyCamUrl);
+
   return (
     <InspectionReport
       inspection={JSON.parse(JSON.stringify(inspection))}
